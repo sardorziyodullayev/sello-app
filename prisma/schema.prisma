@@ -1,0 +1,77 @@
+datasource db {
+   url = env("DATABASE_URL")
+   provider = "postgresql"
+}
+
+generator client {
+   provider = "prisma-client-js"
+}
+
+model User {
+   id           String    @map("id")           @db.Uuid          @default(uuid())
+   username     String    @map("username")     @db.VarChar(200)
+   password     String    @map("password")     @db.VarChar(200)
+   createdAt    DateTime  @map("created_at")   @db.Timestamp(0)  @default(now())
+   updatedAt    DateTime  @map("updated_at")   @db.Timestamp(0)  @updatedAt
+   deletedAt    DateTime? @map("deleted_at")
+
+   order Order[]
+
+   @@id([ id ])
+   @@unique([ username ])
+   @@map("users")
+}
+
+
+model Category {
+   id            String     @map("id")      @db.Uuid       @default(uuid())
+   name          String     @map("name")    @unique
+   subcategory   Subcategory[]
+
+   @@id([ id ])
+   @@map("category")
+}
+
+model Subcategory {
+   id            String    @map("id")    @db.Uuid  @default(uuid())
+   name          String    @map("name")
+   categoryId    String    @map("category_id")
+   category      Category  @relation(fields: [categoryId], references: [id])
+
+   product Product[]
+
+   @@id([ id ])
+   @@map("subcategory")
+}
+
+model Product {
+   id             String       @map("id")         @db.Uuid                         @default(uuid())
+   title          String       @map("title")
+   price          Int          @map("price")
+   discounted     Boolean?     @map("discounted") @default(false)
+   subcategoryId  String       @map("subcategory_id") 
+   subcategory    Subcategory  @relation(fields: [subcategoryId], references: [id])
+   createdAt      DateTime     @map("created_at") @default(now())                  @db.Timestamp(0)
+   updatedAt      DateTime     @map("updated_at") @updatedAt                       @db.Timestamp(0)
+   deletedAt      DateTime?    @map("deleted_at")
+
+   order Order[]
+
+   @@id([ id ])
+   @@map("products")
+}
+
+model Order {
+   id          String     @default(uuid())  @map("id")                     @db.Uuid
+   productId   String     @map("product_id")
+   product     Product    @relation(fields: [productId], references: [id])
+   userId      String     @map("user_id")
+   user        User       @relation(fields: [userId], references: [id])
+   createdAt   DateTime   @default(now())   @map("created_at")              @db.Timestamp(0)
+   updatedAt   DateTime   @updatedAt        @map("updated_at")              @db.Timestamp(0)
+   deletedAt   DateTime?                    @map("deleted_at")
+
+   @@id([id])
+   @@map("orders")
+}
+
